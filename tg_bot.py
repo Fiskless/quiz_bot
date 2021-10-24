@@ -88,14 +88,11 @@ def main():
     load_dotenv()
 
     questions_and_answers = read_questions('3f15')
-    redis_host = os.getenv("REDIS_HOST")
-    redis_port = os.getenv("REDIS_PORT")
-    redis_password = os.getenv("REDIS_PASSWORD")
 
     global redis_connection
-    redis_connection = redis.Redis(host=redis_host,
-                                   port=redis_port,
-                                   password=redis_password)
+    redis_connection = redis.Redis(host=os.getenv("REDIS_HOST"),
+                                   port=os.getenv("REDIS_PORT"),
+                                   password=os.getenv("REDIS_PASSWORD"))
     for question, answer in questions_and_answers.items():
         redis_connection.set(question, answer)
 
