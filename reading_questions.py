@@ -2,8 +2,9 @@
 from contextlib import suppress
 
 
-def main():
-    with open("quiz_questions/3f15.txt", "r", encoding='KOI8-R') as file:
+def read_questions(filename):
+    with open(f"quiz_questions/{filename}.txt", "r",
+              encoding='KOI8-R') as file:
         quiz = file.read()
 
     questions_and_answers = {}
@@ -12,12 +13,7 @@ def main():
         with suppress(ValueError):
             header, lining = content.split(':')
             if header.startswith("Вопрос"):
-                # print(header)
-                _, answer = quiz_content[content_index+1].split(":")
+                _, answer = quiz_content[content_index + 1].split(":\n")
                 questions_and_answers[lining] = answer
 
-    print(type(questions_and_answers))
-
-
-if __name__ == '__main__':
-    main()
+    return questions_and_answers
