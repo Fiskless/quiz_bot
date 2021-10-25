@@ -15,7 +15,7 @@ from reading_questions import read_questions
 
 logger = logging.getLogger('tg_logger')
 
-QUESTION, ANSWER = range(2)
+QUESTION, ANSWER, GIVE_UP = range(3)
 
 
 # Define a few command handlers. These usually take the two arguments bot and
@@ -39,7 +39,7 @@ def handle_give_up(bot, update):
     bot.send_message(chat_id=update.effective_user['id'],
                      text=text)
     redis_connection.delete(update.effective_user['id'])
-
+    return QUESTION
 
 
 def handle_solution_attempt(bot, update):
@@ -49,10 +49,10 @@ def handle_solution_attempt(bot, update):
         bot.send_message(chat_id=update.effective_user['id'],
                         text='Правильно! Поздравляю! Для следующего вопроса нажми "Новый вопрос"')
         redis_connection.delete(update.effective_user['id'])
+
         return QUESTION
-    elif user_answer == "Сдаться":
-        handle_give_up(bot, update)
-        return QUESTION
+    if user_answer == "Сдаться":
+        return GIVE_UP
     else:
         bot.send_message(chat_id=update.effective_user['id'],
                          text='Неправильно… Попробуешь ещё раз?')
@@ -112,6 +112,7 @@ def main():
         states={
             QUESTION: [
                 RegexHandler('^(Новый вопрос)$', handle_new_question_request)],
+            GIVE_UP: [RegexHandler('^(Сдаться)$', handle_give_up)],
             ANSWER: [MessageHandler(Filters.text, handle_solution_attempt)]
         },
 
