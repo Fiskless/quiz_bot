@@ -93,6 +93,10 @@ def main():
 
     global redis_connection
     redis_connection = connect_to_db()
+
+    # for key in redis_connection.keys():
+    #     redis_connection.delete(key)
+    # print(redis_connection.keys())
     for question, answer in questions_and_answers.items():
         redis_connection.set(question, answer)
 

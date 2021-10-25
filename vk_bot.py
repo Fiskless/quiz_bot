@@ -92,7 +92,10 @@ def main():
     vk_api = vk_session.get_api()
 
     longpoll = VkLongPoll(vk_session)
+    question_q = []
+    answer = 0
     for event in longpoll.listen():
+
         if event.type == VkEventType.MESSAGE_NEW and event.to_me:
             if event.text == "/start":
                 message = 'Добро пожаловать в викторину! Нажмите "Новый вопрос" для начала викторины!'
@@ -100,17 +103,21 @@ def main():
             if event.text == "Новый вопрос":
                 question = handle_new_question_request(event, vk_api)
                 question_quot = html.escape(question)
-                print(question_quot)
+                question_q.append(question_quot)
             if event.text == "Сдаться":
                 handle_give_up(event, vk_api)
             if event.text == "/cancel":
                 cancel(event, vk_api)
-        # if event.type == VkEventType.MESSAGE_NEW and event.from_me:
-        #     print(event.text)
-        #     print(event.text==question_quot)
-        #     if event.text == question_quot:
-        #         print('close')
-        #     #     handle_solution_attempt(event, vk_api)
+            if answer:
+                handle_solution_attempt(event, vk_api)
+                answer = 0
+        if event.type == VkEventType.MESSAGE_NEW\
+                and event.from_me \
+                and question_q\
+                and event.text == question_q[0]:
+            answer = 1
+            question_q.remove(question_q[0])
+
 
 
 if __name__ == "__main__":
