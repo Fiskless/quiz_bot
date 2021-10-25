@@ -89,7 +89,7 @@ def main():
     questions_and_answers = read_questions('3f15')
 
     global redis_connection
-    redis_connection = connect_to_db
+    redis_connection = connect_to_db()
     for question, answer in questions_and_answers.items():
         redis_connection.set(question, answer)
 
