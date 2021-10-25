@@ -11,7 +11,7 @@ def read_questions(filename):
     quiz_content = quiz.split("\n\n")
     for content_index, content in enumerate(quiz_content):
         with suppress(ValueError):
-            header, lining = content.split(':')
+            header, lining = content.split(':\n')
             if header.startswith("Вопрос"):
                 _, answer = quiz_content[content_index + 1].split(":\n")
                 questions_and_answers[lining] = answer

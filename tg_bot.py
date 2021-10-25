@@ -1,21 +1,19 @@
 # -*- coding: utf-8 -*-
 
+import logging
 import os
 
-import telegram
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, \
-    ConversationHandler, RegexHandler
-import logging
 import redis
-
+import telegram
 from dotenv import load_dotenv
+from telegram.ext import (CommandHandler, ConversationHandler, Filters,
+                          MessageHandler, RegexHandler, Updater)
+
+from logs_handler import CustomLogsHandler
 from reading_questions import read_questions
 
-# Enable logging
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO)
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('tg_logger')
 
 CHOOSING, ANSWER = range(2)
 
@@ -65,14 +63,8 @@ def handle_new_question_request(bot, update):
     return ANSWER
 
 
-def error(bot, update, error):
-    """Log Errors caused by Updates."""
-    logger.warning('Update "%s" caused error "%s"', update, error)
-
-
 def cancel(bot, update):
     user = update.message.from_user
-    logger.info("User %s canceled the quiz.", user.first_name)
     update.message.reply_text('Команда завершения бота викторины')
 
     return ConversationHandler.END
@@ -83,6 +75,13 @@ def help(bot, update):
     update.message.reply_text('Help!')
 
 
+def connect_to_db():
+
+    return redis.Redis(host=os.getenv("REDIS_HOST"),
+                       port=os.getenv("REDIS_PORT"),
+                       password=os.getenv("REDIS_PASSWORD"))
+
+
 def main():
     """Start the bot."""
     load_dotenv()
@@ -90,15 +89,17 @@ def main():
     questions_and_answers = read_questions('3f15')
 
     global redis_connection
-    redis_connection = redis.Redis(host=os.getenv("REDIS_HOST"),
-                                   port=os.getenv("REDIS_PORT"),
-                                   password=os.getenv("REDIS_PASSWORD"))
+    redis_connection = connect_to_db
     for question, answer in questions_and_answers.items():
         redis_connection.set(question, answer)
 
     bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
+    chat_id = os.getenv("CHAT_ID")
 
     updater = Updater(bot_token)
+
+    logger.setLevel(logging.WARNING)
+    logger.addHandler(CustomLogsHandler(chat_id, bot_token))
 
     dp = updater.dispatcher
 
