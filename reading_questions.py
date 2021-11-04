@@ -1,4 +1,3 @@
-# -*- coding: koi8-r -*-
 from contextlib import suppress
 
 
