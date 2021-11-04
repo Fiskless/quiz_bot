@@ -26,9 +26,8 @@ def handle_give_up(event, vk_api):
 
 
 def handle_solution_attempt(event, vk_api):
-    user_answer = event.text
     correct_answer = redis_connection.get(redis_connection.get(event.user_id))
-    if user_answer.encode('utf-8') == correct_answer:
+    if event.text.encode('utf-8') == correct_answer:
         message = 'Правильно! Поздравляю! Для следующего вопроса нажми "Новый вопрос"'
         add_buttons(event, vk_api, message)
         redis_connection.delete(event.user_id)
