@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 from logs_handler import CustomLogsHandler
 from reading_questions import read_questions
-from tg_bot import connect_to_db
+from connect_to_db import connect_to_db
 
 
 logger = logging.getLogger('vk_logger')

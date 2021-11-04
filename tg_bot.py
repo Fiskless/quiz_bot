@@ -3,7 +3,7 @@
 import logging
 import os
 
-import redis
+
 import telegram
 from dotenv import load_dotenv
 from telegram.ext import (CommandHandler, ConversationHandler, Filters,
@@ -11,6 +11,7 @@ from telegram.ext import (CommandHandler, ConversationHandler, Filters,
 
 from logs_handler import CustomLogsHandler
 from reading_questions import read_questions
+from connect_to_db import connect_to_db
 
 
 logger = logging.getLogger('tg_logger')
@@ -76,13 +77,6 @@ def cancel(bot, update):
 def help(bot, update):
     """Send a message when the command /help is issued."""
     update.message.reply_text('Help!')
-
-
-def connect_to_db():
-
-    return redis.Redis(host=os.getenv("REDIS_HOST"),
-                       port=os.getenv("REDIS_PORT"),
-                       password=os.getenv("REDIS_PASSWORD"))
 
 
 def main():
