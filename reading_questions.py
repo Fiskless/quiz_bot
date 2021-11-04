@@ -3,8 +3,8 @@ from contextlib import suppress
 
 
 def read_questions(filename):
-    with open(f"quiz_questions/{filename}.txt", "r",
-              encoding='KOI8-R') as file:
+    filepath = f"quiz_questions/{filename}.txt"
+    with open(filepath, "r", encoding='KOI8-R') as file:
         quiz = file.read()
 
     questions_and_answers = {}
