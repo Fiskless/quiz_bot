@@ -39,11 +39,9 @@ def handle_solution_attempt(event, vk_api):
 
 def handle_new_question_request(event, vk_api):
     question = REDIS_CONNECTION.randomkey().decode('utf-8')
-    answer = REDIS_CONNECTION.get(question)
+    answer = REDIS_CONNECTION.get(question).decode('utf-8').split('.')[0]
     REDIS_CONNECTION.set(event.user_id, answer)
     add_buttons(event, vk_api, question)
-
-    return question
 
 
 def add_buttons(event, vk_api, message):
@@ -93,31 +91,21 @@ def main():
     vk_api = vk_session.get_api()
 
     longpoll = VkLongPoll(vk_session)
-    question_q = []
-    answer = 0
+
     for event in longpoll.listen():
 
         if event.type == VkEventType.MESSAGE_NEW and event.to_me:
             if event.text == "/start":
                 message = 'Добро пожаловать в викторину! Нажмите "Новый вопрос" для начала викторины!'
                 add_buttons(event, vk_api, message)
-            if event.text == "Новый вопрос":
-                question = handle_new_question_request(event, vk_api)
-                question_quot = html.escape(question)
-                question_q.append(question_quot)
-            if event.text == "Сдаться":
+            elif event.text == "Новый вопрос":
+                handle_new_question_request(event, vk_api)
+            elif event.text == "Сдаться":
                 handle_give_up(event, vk_api)
-            if event.text == "/cancel":
+            elif event.text == "/cancel":
                 cancel(event, vk_api)
-            if answer:
+            else:
                 handle_solution_attempt(event, vk_api)
-                answer = 0
-        if event.type == VkEventType.MESSAGE_NEW\
-                and event.from_me \
-                and question_q\
-                and event.text == question_q[0]:
-            answer = 1
-            question_q.remove(question_q[0])
 
 
 if __name__ == "__main__":
