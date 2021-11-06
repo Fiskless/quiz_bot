@@ -20,8 +20,6 @@ logger = logging.getLogger('tg_logger')
 QUESTION, ANSWER = range(2)
 
 
-# Define a few command handlers. These usually take the two arguments bot and
-# update. Error handlers also receive the raised TelegramError object in error.
 def start(bot, update):
     """Send a message when the command /start is issued."""
 
@@ -35,21 +33,20 @@ def start(bot, update):
 
 
 def handle_give_up(bot, update):
-    correct_answer = redis_connection.get(
-        redis_connection.get(update.effective_user['id'])).decode('utf-8')
+    correct_answer = REDIS_CONNECTION.get(update.effective_user['id']).decode('utf-8')
     text = f'Вот тебе правильный ответ: {correct_answer} Чтобы продолжить, нажми "Новый вопрос"'
     bot.send_message(chat_id=update.effective_user['id'],
                      text=text)
-    redis_connection.delete(update.effective_user['id'])
+    REDIS_CONNECTION.delete(update.effective_user['id'])
 
 
 def handle_solution_attempt(bot, update):
     user_answer = update.message.text
-    correct_answer = redis_connection.get(redis_connection.get(update.effective_user['id']))
+    correct_answer = REDIS_CONNECTION.get(update.effective_user['id'])
     if user_answer.encode('utf-8') == correct_answer:
         bot.send_message(chat_id=update.effective_user['id'],
                         text='Правильно! Поздравляю! Для следующего вопроса нажми "Новый вопрос"')
-        redis_connection.delete(update.effective_user['id'])
+        REDIS_CONNECTION.delete(update.effective_user['id'])
         return QUESTION
     elif user_answer == "Сдаться":
         handle_give_up(bot, update)
@@ -61,8 +58,9 @@ def handle_solution_attempt(bot, update):
 
 
 def handle_new_question_request(bot, update):
-    question = redis_connection.randomkey().decode('utf-8')
-    redis_connection.set(update.effective_user['id'], question)
+    question = REDIS_CONNECTION.randomkey().decode('utf-8')
+    answer = REDIS_CONNECTION.get(question)
+    REDIS_CONNECTION.set(update.effective_user['id'], answer)
     bot.send_message(chat_id=update.effective_user['id'],
                      text=question)
     return ANSWER
@@ -88,12 +86,11 @@ def main():
 
     questions_and_answers = read_questions(args.file_path)
 
-    global redis_connection
-    redis_connection = connect_to_db()
-
     for question, answer in questions_and_answers.items():
-        redis_connection.set(question, answer)
+        REDIS_CONNECTION.set(question, answer)
 
+    # for key in REDIS_CONNECTION.keys():
+    #     REDIS_CONNECTION.delete(key)
     bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
     chat_id = os.getenv("CHAT_ID")
 
@@ -125,4 +122,5 @@ def main():
 
 
 if __name__ == '__main__':
+    REDIS_CONNECTION = connect_to_db()
     main()

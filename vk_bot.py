@@ -18,20 +18,19 @@ logger = logging.getLogger('vk_logger')
 
 
 def handle_give_up(event, vk_api):
-    correct_answer = redis_connection.get(
-        redis_connection.get(event.user_id)).decode('utf-8')
+    correct_answer = REDIS_CONNECTION.get(event.user_id).decode('utf-8')
     text = f'Вот тебе правильный ответ: {correct_answer} Чтобы продолжить, нажми "Новый вопрос"'
     add_buttons(event, vk_api, text)
 
-    redis_connection.delete(event.user_id)
+    REDIS_CONNECTION.delete(event.user_id)
 
 
 def handle_solution_attempt(event, vk_api):
-    correct_answer = redis_connection.get(redis_connection.get(event.user_id))
+    correct_answer = REDIS_CONNECTION.get(event.user_id)
     if event.text.encode('utf-8') == correct_answer:
         message = 'Правильно! Поздравляю! Для следующего вопроса нажми "Новый вопрос"'
         add_buttons(event, vk_api, message)
-        redis_connection.delete(event.user_id)
+        REDIS_CONNECTION.delete(event.user_id)
 
     else:
         message = 'Неправильно… Попробуешь ещё раз?'
@@ -39,8 +38,9 @@ def handle_solution_attempt(event, vk_api):
 
 
 def handle_new_question_request(event, vk_api):
-    question = redis_connection.randomkey().decode('utf-8')
-    redis_connection.set(event.user_id, question)
+    question = REDIS_CONNECTION.randomkey().decode('utf-8')
+    answer = REDIS_CONNECTION.get(question)
+    REDIS_CONNECTION.set(event.user_id, answer)
     add_buttons(event, vk_api, question)
 
     return question
@@ -79,11 +79,11 @@ def main():
 
     questions_and_answers = read_questions(args.file_path)
 
-
-    global redis_connection
-    redis_connection = connect_to_db()
     for question, answer in questions_and_answers.items():
-        redis_connection.set(question, answer)
+        REDIS_CONNECTION.set(question, answer)
+
+    for value in REDIS_CONNECTION.keys():
+        print(value.decode('utf-8'))
 
     vk_group_token = os.getenv("VK_GROUP_TOKEN")
     vk_user_id = os.getenv("VK_USER_ID")
@@ -124,4 +124,5 @@ def main():
 
 
 if __name__ == "__main__":
+    REDIS_CONNECTION = connect_to_db()
     main()

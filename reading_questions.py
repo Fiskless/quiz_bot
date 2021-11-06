@@ -1,6 +1,7 @@
 from contextlib import suppress
 
 
+
 def read_questions(filepath):
 
     with open(filepath, "r", encoding='KOI8-R') as file:
@@ -14,5 +15,4 @@ def read_questions(filepath):
             if header.startswith("Вопрос"):
                 _, answer = quiz_content[content_index + 1].split(":\n")
                 questions_and_answers[question_or_answer_content] = answer
-    print(questions_and_answers)
     return questions_and_answers
