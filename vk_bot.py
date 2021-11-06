@@ -82,9 +82,6 @@ def main():
     for question, answer in questions_and_answers.items():
         REDIS_CONNECTION.set(question, answer)
 
-    for value in REDIS_CONNECTION.keys():
-        print(value.decode('utf-8'))
-
     vk_group_token = os.getenv("VK_GROUP_TOKEN")
     vk_user_id = os.getenv("VK_USER_ID")
 
@@ -124,5 +121,5 @@ def main():
 
 
 if __name__ == "__main__":
-    REDIS_CONNECTION = connect_to_db(db=1)
+    REDIS_CONNECTION = connect_to_db(1)
     main()
