@@ -86,11 +86,12 @@ def main():
 
     questions_and_answers = read_questions(args.file_path)
 
-    for question, answer in questions_and_answers.items():
-        REDIS_CONNECTION.set(question, answer)
+    # for question, answer in questions_and_answers.items():
+    #     REDIS_CONNECTION.set(question, answer)
 
-    # for key in REDIS_CONNECTION.keys():
-    #     REDIS_CONNECTION.delete(key)
+    for key in REDIS_CONNECTION.keys():
+        REDIS_CONNECTION.delete(key)
+    print(REDIS_CONNECTION.keys())
     bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
     chat_id = os.getenv("CHAT_ID")
 
@@ -122,5 +123,5 @@ def main():
 
 
 if __name__ == '__main__':
-    REDIS_CONNECTION = connect_to_db()
+    REDIS_CONNECTION = connect_to_db(db=0)
     main()

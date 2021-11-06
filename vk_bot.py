@@ -124,5 +124,5 @@ def main():
 
 
 if __name__ == "__main__":
-    REDIS_CONNECTION = connect_to_db()
+    REDIS_CONNECTION = connect_to_db(db=1)
     main()
