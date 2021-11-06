@@ -1,8 +1,8 @@
 from contextlib import suppress
 
 
-def read_questions(filename):
-    filepath = f"quiz_questions/{filename}.txt"
+def read_questions(filepath):
+
     with open(filepath, "r", encoding='KOI8-R') as file:
         quiz = file.read()
 
@@ -14,4 +14,5 @@ def read_questions(filename):
             if header.startswith("Вопрос"):
                 _, answer = quiz_content[content_index + 1].split(":\n")
                 questions_and_answers[question_or_answer_content] = answer
+    print(questions_and_answers)
     return questions_and_answers

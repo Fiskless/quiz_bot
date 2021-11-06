@@ -12,6 +12,7 @@ from telegram.ext import (CommandHandler, ConversationHandler, Filters,
 from logs_handler import CustomLogsHandler
 from reading_questions import read_questions
 from connect_to_db import connect_to_db
+from create_parser import create_parser
 
 
 logger = logging.getLogger('tg_logger')
@@ -40,7 +41,6 @@ def handle_give_up(bot, update):
     bot.send_message(chat_id=update.effective_user['id'],
                      text=text)
     redis_connection.delete(update.effective_user['id'])
-
 
 
 def handle_solution_attempt(bot, update):
@@ -83,7 +83,10 @@ def main():
     """Start the bot."""
     load_dotenv()
 
-    questions_and_answers = read_questions('3f15')
+    parser = create_parser()
+    args = parser.parse_args()
+
+    questions_and_answers = read_questions(args.file_path)
 
     global redis_connection
     redis_connection = connect_to_db()

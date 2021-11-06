@@ -8,6 +8,7 @@ from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from vk_api.longpoll import VkLongPoll, VkEventType
 from dotenv import load_dotenv
 
+from create_parser import create_parser
 from logs_handler import CustomLogsHandler
 from reading_questions import read_questions
 from connect_to_db import connect_to_db
@@ -73,7 +74,11 @@ def cancel(event, vk_api):
 def main():
     load_dotenv()
 
-    questions_and_answers = read_questions('3f15')
+    parser = create_parser()
+    args = parser.parse_args()
+
+    questions_and_answers = read_questions(args.file_path)
+
 
     global redis_connection
     redis_connection = connect_to_db()
