@@ -20,7 +20,7 @@ logger = logging.getLogger('vk_logger')
 def handle_give_up(event, vk_api):
     correct_answer = REDIS_CONNECTION.get(event.user_id).decode('utf-8')
     text = f'Вот тебе правильный ответ: {correct_answer} Чтобы продолжить, нажми "Новый вопрос"'
-    add_buttons(event, vk_api, text)
+    send_keyboard(event, vk_api, text)
 
     REDIS_CONNECTION.delete(event.user_id)
 
@@ -29,22 +29,22 @@ def handle_solution_attempt(event, vk_api):
     correct_answer = REDIS_CONNECTION.get(event.user_id)
     if event.text.encode('utf-8') == correct_answer:
         message = 'Правильно! Поздравляю! Для следующего вопроса нажми "Новый вопрос"'
-        add_buttons(event, vk_api, message)
+        send_keyboard(event, vk_api, message)
         REDIS_CONNECTION.delete(event.user_id)
 
     else:
         message = 'Неправильно… Попробуешь ещё раз?'
-        add_buttons(event, vk_api, message)
+        send_keyboard(event, vk_api, message)
 
 
 def handle_new_question_request(event, vk_api):
     question = REDIS_CONNECTION.randomkey().decode('utf-8')
     answer = REDIS_CONNECTION.get(question).decode('utf-8').split('.')[0]
     REDIS_CONNECTION.set(event.user_id, answer)
-    add_buttons(event, vk_api, question)
+    send_keyboard(event, vk_api, question)
 
 
-def add_buttons(event, vk_api, message):
+def send_keyboard(event, vk_api, message):
     keyboard = VkKeyboard(one_time=True)
 
     keyboard.add_button('Новый вопрос', color=VkKeyboardColor.PRIMARY)
@@ -97,7 +97,7 @@ def main():
         if event.type == VkEventType.MESSAGE_NEW and event.to_me:
             if event.text == "/start":
                 message = 'Добро пожаловать в викторину! Нажмите "Новый вопрос" для начала викторины!'
-                add_buttons(event, vk_api, message)
+                send_keyboard(event, vk_api, message)
             elif event.text == "Новый вопрос":
                 handle_new_question_request(event, vk_api)
             elif event.text == "Сдаться":
