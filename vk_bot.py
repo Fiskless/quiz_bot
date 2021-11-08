@@ -17,30 +17,30 @@ from connect_to_db import connect_to_db
 logger = logging.getLogger('vk_logger')
 
 
-def handle_give_up(event, vk_api):
-    correct_answer = REDIS_CONNECTION.get(event.user_id).decode('utf-8')
+def handle_give_up(event, vk_api, db_connection):
+    correct_answer = db_connection.get(f'vk-{event.user_id}').decode('utf-8')
     text = f'Вот тебе правильный ответ: {correct_answer} Чтобы продолжить, нажми "Новый вопрос"'
     send_keyboard(event, vk_api, text)
 
-    REDIS_CONNECTION.delete(event.user_id)
+    db_connection.delete(event.user_id)
 
 
-def handle_solution_attempt(event, vk_api):
-    correct_answer = REDIS_CONNECTION.get(event.user_id)
+def handle_solution_attempt(event, vk_api, db_connection):
+    correct_answer = db_connection.get(f'vk-{event.user_id}')
     if event.text.encode('utf-8') == correct_answer:
         message = 'Правильно! Поздравляю! Для следующего вопроса нажми "Новый вопрос"'
         send_keyboard(event, vk_api, message)
-        REDIS_CONNECTION.delete(event.user_id)
+        db_connection.delete(event.user_id)
 
     else:
         message = 'Неправильно… Попробуешь ещё раз?'
         send_keyboard(event, vk_api, message)
 
 
-def handle_new_question_request(event, vk_api):
-    question = REDIS_CONNECTION.randomkey().decode('utf-8')
-    answer = REDIS_CONNECTION.get(question).decode('utf-8').split('.')[0]
-    REDIS_CONNECTION.set(event.user_id, answer)
+def handle_new_question_request(event, vk_api, db_connection):
+    question = db_connection.randomkey().decode('utf-8')
+    answer = db_connection.get(question).decode('utf-8').split('.')[0]
+    db_connection.set(f'vk-{event.user_id}', answer)
     send_keyboard(event, vk_api, question)
 
 
@@ -77,8 +77,10 @@ def main():
 
     questions_and_answers = read_questions(args.file_path)
 
+    redis_connection = connect_to_db()
+
     for question, answer in questions_and_answers.items():
-        REDIS_CONNECTION.set(question, answer)
+        redis_connection.set(question, answer)
 
     vk_group_token = os.getenv("VK_GROUP_TOKEN")
     vk_user_id = os.getenv("VK_USER_ID")
@@ -99,15 +101,14 @@ def main():
                 message = 'Добро пожаловать в викторину! Нажмите "Новый вопрос" для начала викторины!'
                 send_keyboard(event, vk_api, message)
             elif event.text == "Новый вопрос":
-                handle_new_question_request(event, vk_api)
+                handle_new_question_request(event, vk_api, redis_connection)
             elif event.text == "Сдаться":
-                handle_give_up(event, vk_api)
+                handle_give_up(event, vk_api, redis_connection)
             elif event.text == "/cancel":
                 cancel(event, vk_api)
             else:
-                handle_solution_attempt(event, vk_api)
+                handle_solution_attempt(event, vk_api, redis_connection)
 
 
 if __name__ == "__main__":
-    REDIS_CONNECTION = connect_to_db(1)
     main()
